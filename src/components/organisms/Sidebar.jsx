@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useContext } from "react";
+import { AuthContext } from '@/App';
 import ApperIcon from "@/components/ApperIcon";
 import NavigationItem from "@/components/molecules/NavigationItem";
 import Button from "@/components/atoms/Button";
 import { cn } from "@/utils/cn";
 
 const Sidebar = ({ isOpen, onClose }) => {
+  const { logout } = useContext(AuthContext);
   const navigationItems = [
     { to: "/", icon: "LayoutDashboard", label: "Dashboard" },
     { to: "/transactions", icon: "Receipt", label: "Transactions" },
@@ -57,8 +59,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                 <Button
                   size="sm"
                   variant="secondary"
-                  onClick={() => {
-                    const { logout } = require('@/App').AuthContext._currentValue;
+onClick={() => {
                     if (logout) logout();
                   }}
                   className="ml-2"
@@ -128,8 +129,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                   <Button
                     size="sm"
                     variant="secondary"
-                    onClick={() => {
-                      const { logout } = require('@/App').AuthContext._currentValue;
+onClick={() => {
                       if (logout) logout();
                     }}
                   >
