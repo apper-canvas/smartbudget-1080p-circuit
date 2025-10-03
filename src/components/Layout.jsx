@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Outlet } from "react-router-dom";
-import Sidebar from "@/components/organisms/Sidebar";
+import { AuthContext } from "@/App";
 import ApperIcon from "@/components/ApperIcon";
+import Sidebar from "@/components/organisms/Sidebar";
 import Button from "@/components/atoms/Button";
-
 const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { logout } = useContext(AuthContext);
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -33,6 +34,13 @@ const Layout = () => {
                   </h1>
                 </div>
               </div>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={logout}
+              >
+                <ApperIcon name="LogOut" className="w-5 h-5" />
+              </Button>
             </div>
           </div>
 

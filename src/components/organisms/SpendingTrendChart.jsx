@@ -18,7 +18,7 @@ const SpendingTrendChart = () => {
     loadChartData();
   }, [timeRange]);
 
-  const loadChartData = async () => {
+const loadChartData = async () => {
     setLoading(true);
     setError("");
     
@@ -28,17 +28,17 @@ const SpendingTrendChart = () => {
       
       const monthlyData = months.map(month => {
         const monthTransactions = transactions.filter(t => {
-          const transactionMonth = new Date(t.date).toISOString().slice(0, 7);
+          const transactionMonth = new Date(t.date_c).toISOString().slice(0, 7);
           return transactionMonth === month.key;
         });
 
         const income = monthTransactions
-          .filter(t => t.type === "income")
-          .reduce((sum, t) => sum + t.amount, 0);
+          .filter(t => t.type_c === "income")
+          .reduce((sum, t) => sum + (t.amount_c || 0), 0);
         
         const expenses = Math.abs(monthTransactions
-          .filter(t => t.type === "expense")
-          .reduce((sum, t) => sum + t.amount, 0));
+          .filter(t => t.type_c === "expense")
+          .reduce((sum, t) => sum + (t.amount_c || 0), 0));
 
         return {
           month: month.label,

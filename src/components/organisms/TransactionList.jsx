@@ -12,9 +12,10 @@ const TransactionList = ({ transactions, onEdit, onDelete, loading }) => {
   const [selectedType, setSelectedType] = useState("all");
 
   const filteredTransactions = transactions.filter(transaction => {
-    const matchesSearch = transaction.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         transaction.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = selectedType === "all" || transaction.type === selectedType;
+const categoryName = transaction.category_c?.Name || transaction.category_c || '';
+    const matchesSearch = (transaction.description_c || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         categoryName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesType = selectedType === "all" || transaction.type_c === selectedType;
     return matchesSearch && matchesType;
   });
 
@@ -112,39 +113,39 @@ const TransactionList = ({ transactions, onEdit, onDelete, loading }) => {
                 className="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:shadow-md transition-all duration-200 group"
               >
                 <div className="flex items-center space-x-4 flex-1">
-                  <div
+<div
                     className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-lg"
-                    style={{ background: `linear-gradient(135deg, ${getCategoryColor(transaction.category)}, ${getCategoryColor(transaction.category)}dd)` }}
+                    style={{ background: `linear-gradient(135deg, ${getCategoryColor(transaction.category_c?.Name || '')}, ${getCategoryColor(transaction.category_c?.Name || '')}dd)` }}
                   >
                     <ApperIcon 
-                      name={transaction.type === "income" ? "TrendingUp" : "TrendingDown"} 
+                      name={transaction.type_c === "income" ? "TrendingUp" : "TrendingDown"}
                       className="w-5 h-5" 
                     />
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-medium text-slate-900">{transaction.description}</h4>
+<h4 className="font-medium text-slate-900">{transaction.description_c || transaction.Name}</h4>
                       <Badge 
-                        variant={transaction.type === "income" ? "success" : "default"}
+                        variant={transaction.type_c === "income" ? "success" : "default"}
                         style={{ 
-                          backgroundColor: `${getCategoryColor(transaction.category)}20`,
-                          color: getCategoryColor(transaction.category),
-                          borderColor: `${getCategoryColor(transaction.category)}40`
+                          backgroundColor: `${getCategoryColor(transaction.category_c?.Name || '')}20`,
+                          color: getCategoryColor(transaction.category_c?.Name || ''),
+                          borderColor: `${getCategoryColor(transaction.category_c?.Name || '')}40`
                         }}
                       >
-                        {transaction.category}
+                        {transaction.category_c?.Name || transaction.category_c}
                       </Badge>
                     </div>
-                    <p className="text-sm text-slate-600">{formatDate(transaction.date)}</p>
+                    <p className="text-sm text-slate-600">{formatDate(transaction.date_c)}</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center space-x-4">
                   <div className="text-right">
-                    <p className={`font-semibold ${
-                      transaction.type === "income" ? "text-success-600" : "text-slate-900"
+<p className={`font-semibold ${
+                      transaction.type_c === "income" ? "text-success-600" : "text-slate-900"
                     }`}>
-                      {transaction.type === "income" ? "+" : ""}{formatCurrency(transaction.amount)}
+                      {transaction.type_c === "income" ? "+" : ""}{formatCurrency(transaction.amount_c)}
                     </p>
                   </div>
                   

@@ -29,7 +29,7 @@ const BudgetManager = () => {
     loadData();
   }, []);
 
-  const loadData = async () => {
+const loadData = async () => {
     setLoading(true);
     setError("");
     
@@ -43,7 +43,7 @@ const BudgetManager = () => {
       
       setBudgets(budgetsData);
       setCategories(categoriesData);
-      setTransactions(transactionsData.filter(t => t.type === "expense"));
+      setTransactions(transactionsData.filter(t => t.type_c === "expense"));
     } catch (err) {
       setError("Failed to load budget data");
     } finally {
@@ -51,7 +51,7 @@ const BudgetManager = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!formData.category || !formData.monthlyLimit) {
@@ -81,14 +81,17 @@ const BudgetManager = () => {
       setShowForm(false);
       await loadData();
     } catch (error) {
-      toast.error("Failed to save budget");
+      toast.error(error.message || "Failed to save budget");
     }
   };
 
-  const getSpentAmount = (category) => {
+const getSpentAmount = (categoryName) => {
     return transactions
-      .filter(t => t.category === category)
-      .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+      .filter(t => {
+        const transactionCategory = t.category_c?.Name || t.category_c;
+        return transactionCategory === categoryName;
+      })
+      .reduce((sum, t) => sum + Math.abs(t.amount_c || 0), 0);
   };
 
   const getProgressPercentage = (spent, limit) => {
@@ -133,11 +136,17 @@ const BudgetManager = () => {
                     onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
                   >
                     <option value="">Select category...</option>
-                    {categories
-                      .filter(cat => !budgets.find(b => b.category === cat.name))
+{categories
+                      .filter(cat => {
+                        const catName = cat.Name || cat.name_c;
+                        return !budgets.find(b => {
+                          const budgetCatName = b.category_c?.Name || b.category_c;
+                          return budgetCatName === catName;
+                        });
+                      })
                       .map(category => (
-                        <option key={category.Id} value={category.name}>
-                          {category.name}
+                        <option key={category.Id} value={category.Name || category.name_c}>
+                          {category.Name || category.name_c}
                         </option>
                       ))
                     }
@@ -180,19 +189,20 @@ const BudgetManager = () => {
           </Card>
         ) : (
           budgets.map((budget) => {
-            const spent = getSpentAmount(budget.category);
-            const percentage = getProgressPercentage(spent, budget.monthlyLimit);
-            const remaining = Math.max(0, budget.monthlyLimit - spent);
+const categoryName = budget.category_c?.Name || budget.category_c;
+            const spent = getSpentAmount(categoryName);
+            const percentage = getProgressPercentage(spent, budget.monthly_limit_c);
+            const remaining = Math.max(0, budget.monthly_limit_c - spent);
             const color = getProgressColor(percentage);
 
             return (
               <Card key={budget.Id} className="p-6">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-slate-900">{budget.category}</h3>
+                    <h3 className="text-lg font-semibold text-slate-900">{categoryName}</h3>
                     <div className="text-right">
                       <p className="text-sm text-slate-600">
-                        {formatCurrency(spent)} of {formatCurrency(budget.monthlyLimit)}
+                        {formatCurrency(spent)} of {formatCurrency(budget.monthly_limit_c)}
                       </p>
                       <p className={`text-sm font-medium ${
                         remaining > 0 ? "text-success-600" : "text-error-600"

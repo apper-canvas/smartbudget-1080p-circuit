@@ -11,26 +11,27 @@ import { toast } from "react-toastify";
 const TransactionForm = ({ onSubmit, onCancel, initialData = null, isEditing = false }) => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    amount: "",
-    category: "",
-    type: "expense",
-    description: "",
-    date: formatDateInput(new Date())
+const [formData, setFormData] = useState({
+    amount_c: "",
+    category_c: "",
+    type_c: "expense",
+    description_c: "",
+    date_c: formatDateInput(new Date())
   });
 
   useEffect(() => {
     loadCategories();
   }, []);
 
-  useEffect(() => {
+useEffect(() => {
     if (initialData) {
+      const categoryValue = initialData.category_c?.Name || initialData.category_c;
       setFormData({
-        amount: Math.abs(initialData.amount).toString(),
-        category: initialData.category,
-        type: initialData.type,
-        description: initialData.description,
-        date: formatDateInput(initialData.date)
+        amount_c: Math.abs(initialData.amount_c || 0).toString(),
+        category_c: categoryValue,
+        type_c: initialData.type_c || "expense",
+        description_c: initialData.description_c || "",
+        date_c: formatDateInput(initialData.date_c || new Date())
       });
     }
   }, [initialData]);
@@ -44,15 +45,15 @@ const TransactionForm = ({ onSubmit, onCancel, initialData = null, isEditing = f
     }
   };
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.amount || !formData.category || !formData.description) {
+    if (!formData.amount_c || !formData.category_c || !formData.description_c) {
       toast.error("Please fill in all required fields");
       return;
     }
 
-    const amount = parseFloat(formData.amount);
+    const amount = parseFloat(formData.amount_c);
     if (isNaN(amount) || amount <= 0) {
       toast.error("Please enter a valid amount");
       return;
@@ -60,25 +61,35 @@ const TransactionForm = ({ onSubmit, onCancel, initialData = null, isEditing = f
 
     setLoading(true);
     try {
+      const selectedCategory = categories.find(c => c.Name === formData.category_c || c.name_c === formData.category_c);
+      
       const transactionData = {
-        ...formData,
-        amount: formData.type === "expense" ? -Math.abs(amount) : Math.abs(amount),
-        date: new Date(formData.date).toISOString()
+        amount_c: formData.type_c === "expense" ? -Math.abs(amount) : Math.abs(amount),
+        type_c: formData.type_c,
+        description_c: formData.description_c,
+        date_c: new Date(formData.date_c).toISOString(),
+        category_c: selectedCategory ? selectedCategory.Id : null
       };
+
+      if (!transactionData.category_c) {
+        toast.error("Invalid category selected");
+        setLoading(false);
+        return;
+      }
 
       await onSubmit(transactionData);
       
       if (!isEditing) {
         setFormData({
-          amount: "",
-          category: "",
-          type: "expense",
-          description: "",
-          date: formatDateInput(new Date())
+          amount_c: "",
+          category_c: "",
+          type_c: "expense",
+          description_c: "",
+          date_c: formatDateInput(new Date())
         });
       }
     } catch (error) {
-      toast.error("Failed to save transaction");
+      toast.error(error.message || "Failed to save transaction");
     } finally {
       setLoading(false);
     }
@@ -88,8 +99,8 @@ const TransactionForm = ({ onSubmit, onCancel, initialData = null, isEditing = f
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const expenseCategories = categories.filter(c => c.type === "expense");
-  const incomeCategories = categories.filter(c => c.type === "income");
+const expenseCategories = categories.filter(c => c.type_c === "expense");
+  const incomeCategories = categories.filter(c => c.type_c === "income");
 
   return (
     <Card className="p-6">
@@ -127,16 +138,16 @@ const TransactionForm = ({ onSubmit, onCancel, initialData = null, isEditing = f
             >
               <option value="">Select category...</option>
               {formData.type === "expense" && 
-                expenseCategories.map(category => (
-                  <option key={category.Id} value={category.name}>
-                    {category.name}
+expenseCategories.map(category => (
+                  <option key={category.Id} value={category.Name || category.name_c}>
+                    {category.Name || category.name_c}
                   </option>
                 ))
               }
-              {formData.type === "income" && 
+              {formData.type_c === "income" && 
                 incomeCategories.map(category => (
-                  <option key={category.Id} value={category.name}>
-                    {category.name}
+                  <option key={category.Id} value={category.Name || category.name_c}>
+                    {category.Name || category.name_c}
                   </option>
                 ))
               }

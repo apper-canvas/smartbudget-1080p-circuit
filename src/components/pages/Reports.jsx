@@ -36,21 +36,21 @@ const Reports = () => {
     }
   };
 
-  const getFilteredData = () => {
+const getFilteredData = () => {
     const months = getLastMonths(timeRange === "6months" ? 6 : 12);
     return months.map(month => {
       const monthTransactions = transactions.filter(t => {
-        const transactionMonth = new Date(t.date).toISOString().slice(0, 7);
+        const transactionMonth = new Date(t.date_c).toISOString().slice(0, 7);
         return transactionMonth === month.key;
       });
 
       const income = monthTransactions
-        .filter(t => t.type === "income")
-        .reduce((sum, t) => sum + t.amount, 0);
+        .filter(t => t.type_c === "income")
+        .reduce((sum, t) => sum + (t.amount_c || 0), 0);
       
       const expenses = Math.abs(monthTransactions
-        .filter(t => t.type === "expense")
-        .reduce((sum, t) => sum + t.amount, 0));
+        .filter(t => t.type_c === "expense")
+        .reduce((sum, t) => sum + (t.amount_c || 0), 0));
 
       return {
         month: month.label,
@@ -61,12 +61,12 @@ const Reports = () => {
     });
   };
 
-  const getCategoryBreakdown = () => {
+const getCategoryBreakdown = () => {
     const categoryTotals = transactions
-      .filter(t => t.type === "expense")
+      .filter(t => t.type_c === "expense")
       .reduce((acc, transaction) => {
-        const category = transaction.category;
-        acc[category] = (acc[category] || 0) + Math.abs(transaction.amount);
+        const category = transaction.category_c?.Name || transaction.category_c || 'Uncategorized';
+        acc[category] = (acc[category] || 0) + Math.abs(transaction.amount_c || 0);
         return acc;
       }, {});
 

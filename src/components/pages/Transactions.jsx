@@ -45,14 +45,21 @@ const Transactions = () => {
     }
   };
 
-  const handleEditTransaction = async (transactionData) => {
+const handleEditTransaction = async (transactionData) => {
     try {
-      await transactionService.update(editingTransaction.Id, transactionData);
+      const updateData = {
+        amount_c: transactionData.amount_c,
+        type_c: transactionData.type_c,
+        description_c: transactionData.description_c,
+        date_c: transactionData.date_c,
+        category_c: transactionData.category_c
+      };
+      await transactionService.update(editingTransaction.Id, updateData);
       toast.success("Transaction updated successfully");
       setEditingTransaction(null);
       await loadTransactions();
     } catch (error) {
-      throw new Error("Failed to update transaction");
+      toast.error(error.message || "Failed to update transaction");
     }
   };
 

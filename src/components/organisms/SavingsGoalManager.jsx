@@ -20,10 +20,10 @@ const SavingsGoalManager = () => {
   const [showContributeModal, setShowContributeModal] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState(null);
   const [contributeAmount, setContributeAmount] = useState("");
-  const [formData, setFormData] = useState({
-    title: "",
-    targetAmount: "",
-    deadline: formatDateInput(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000))
+const [formData, setFormData] = useState({
+    title_c: "",
+    target_amount_c: "",
+    deadline_c: formatDateInput(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000))
   });
 
   useEffect(() => {
@@ -44,15 +44,15 @@ const SavingsGoalManager = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.title || !formData.targetAmount || !formData.deadline) {
+    if (!formData.title_c || !formData.target_amount_c || !formData.deadline_c) {
       toast.error("Please fill in all fields");
       return;
     }
 
-    const amount = parseFloat(formData.targetAmount);
+    const amount = parseFloat(formData.target_amount_c);
     if (isNaN(amount) || amount <= 0) {
       toast.error("Please enter a valid target amount");
       return;
@@ -60,23 +60,23 @@ const SavingsGoalManager = () => {
 
     try {
       const goalData = {
-        ...formData,
-        targetAmount: amount,
-        currentAmount: 0,
-        deadline: new Date(formData.deadline).toISOString()
+        title_c: formData.title_c,
+        target_amount_c: amount,
+        current_amount_c: 0,
+        deadline_c: new Date(formData.deadline_c).toISOString()
       };
 
       await savingsGoalService.create(goalData);
       toast.success("Savings goal created successfully");
       setFormData({
-        title: "",
-        targetAmount: "",
-        deadline: formatDateInput(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000))
+        title_c: "",
+        target_amount_c: "",
+        deadline_c: formatDateInput(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000))
       });
       setShowForm(false);
       await loadGoals();
     } catch (error) {
-      toast.error("Failed to create savings goal");
+      toast.error(error.message || "Failed to create savings goal");
     }
   };
 
@@ -204,9 +204,9 @@ const SavingsGoalManager = () => {
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {goals.map((goal) => {
-            const percentage = getProgressPercentage(goal.currentAmount, goal.targetAmount);
-            const daysRemaining = getDaysRemaining(goal.deadline);
+{goals.map((goal) => {
+            const percentage = getProgressPercentage(goal.current_amount_c || 0, goal.target_amount_c || 0);
+            const daysRemaining = getDaysRemaining(goal.deadline_c);
             const isOverdue = daysRemaining < 0;
 
             return (
@@ -214,12 +214,12 @@ const SavingsGoalManager = () => {
                 <div className="space-y-4">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-slate-900 mb-1">{goal.title}</h3>
+                      <h3 className="text-lg font-semibold text-slate-900 mb-1">{goal.title_c || goal.Name}</h3>
                       <p className="text-sm text-slate-600">
-                        {formatCurrency(goal.currentAmount)} of {formatCurrency(goal.targetAmount)}
+                        {formatCurrency(goal.current_amount_c || 0)} of {formatCurrency(goal.target_amount_c || 0)}
                       </p>
                       <p className="text-xs text-slate-500 mt-1">
-                        Target: {formatDate(goal.deadline)}
+                        Target: {formatDate(goal.deadline_c)}
                         {isOverdue ? (
                           <span className="text-error-600 font-medium ml-1">(Overdue)</span>
                         ) : daysRemaining <= 30 ? (
@@ -256,7 +256,7 @@ const SavingsGoalManager = () => {
                         {percentage.toFixed(0)}% Complete
                       </span>
                       <span className="text-sm text-slate-600">
-                        {formatCurrency(goal.targetAmount - goal.currentAmount)} to go
+{formatCurrency((goal.target_amount_c || 0) - (goal.current_amount_c || 0))} to go
                       </span>
                     </div>
                     <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden">

@@ -1,6 +1,7 @@
 import React from "react";
-import NavigationItem from "@/components/molecules/NavigationItem";
 import ApperIcon from "@/components/ApperIcon";
+import NavigationItem from "@/components/molecules/NavigationItem";
+import Button from "@/components/atoms/Button";
 import { cn } from "@/utils/cn";
 
 const Sidebar = ({ isOpen, onClose }) => {
@@ -50,9 +51,20 @@ const Sidebar = ({ isOpen, onClose }) => {
                   <ApperIcon name="User" className="w-4 h-4 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-900 truncate">John Doe</p>
-                  <p className="text-xs text-slate-500">Premium User</p>
+<p className="text-sm font-medium text-slate-900 truncate">User</p>
+                  <p className="text-xs text-slate-500">SmartBudget</p>
                 </div>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => {
+                    const { logout } = require('@/App').AuthContext._currentValue;
+                    if (logout) logout();
+                  }}
+                  className="ml-2"
+                >
+                  <ApperIcon name="LogOut" className="w-4 h-4" />
+                </Button>
               </div>
             </div>
           </div>
@@ -109,10 +121,20 @@ const Sidebar = ({ isOpen, onClose }) => {
                   <div className="w-6 h-6 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center">
                     <ApperIcon name="User" className="w-3 h-3 text-white" />
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">John Doe</p>
-                    <p className="text-xs text-slate-500">Premium User</p>
+<div className="flex-1">
+                    <p className="text-sm font-medium text-slate-900">User</p>
+                    <p className="text-xs text-slate-500">SmartBudget</p>
                   </div>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => {
+                      const { logout } = require('@/App').AuthContext._currentValue;
+                      if (logout) logout();
+                    }}
+                  >
+                    <ApperIcon name="LogOut" className="w-4 h-4" />
+                  </Button>
                 </div>
               </div>
             </div>

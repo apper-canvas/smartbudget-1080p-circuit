@@ -23,7 +23,7 @@ const Dashboard = () => {
     loadDashboardData();
   }, []);
 
-  const loadDashboardData = async () => {
+const loadDashboardData = async () => {
     setLoading(true);
     setError("");
     
@@ -36,18 +36,18 @@ const Dashboard = () => {
       ]);
 
       const monthlyIncome = transactions
-        .filter(t => t.type === "income")
-        .reduce((sum, t) => sum + t.amount, 0);
+        .filter(t => t.type_c === "income")
+        .reduce((sum, t) => sum + (t.amount_c || 0), 0);
 
       const monthlyExpenses = Math.abs(transactions
-        .filter(t => t.type === "expense")
-        .reduce((sum, t) => sum + t.amount, 0));
+        .filter(t => t.type_c === "expense")
+        .reduce((sum, t) => sum + (t.amount_c || 0), 0));
 
-      const totalBudget = budgets.reduce((sum, b) => sum + b.monthlyLimit, 0);
+      const totalBudget = budgets.reduce((sum, b) => sum + (b.monthly_limit_c || 0), 0);
       const remainingBudget = totalBudget - monthlyExpenses;
 
-      const totalSavingsTarget = goals.reduce((sum, g) => sum + g.targetAmount, 0);
-      const totalSavingsCurrent = goals.reduce((sum, g) => sum + g.currentAmount, 0);
+      const totalSavingsTarget = goals.reduce((sum, g) => sum + (g.target_amount_c || 0), 0);
+      const totalSavingsCurrent = goals.reduce((sum, g) => sum + (g.current_amount_c || 0), 0);
       const savingsProgress = totalSavingsTarget > 0 
         ? (totalSavingsCurrent / totalSavingsTarget) * 100 
         : 0;

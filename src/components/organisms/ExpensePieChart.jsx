@@ -16,14 +16,14 @@ const ExpensePieChart = () => {
     loadChartData();
   }, []);
 
-  const loadChartData = async () => {
+const loadChartData = async () => {
     setLoading(true);
     setError("");
     
     try {
       const currentMonth = getCurrentMonth();
       const transactions = await transactionService.getByMonth(currentMonth);
-      const expenses = transactions.filter(t => t.type === "expense");
+      const expenses = transactions.filter(t => t.type_c === "expense");
       
       if (expenses.length === 0) {
         setChartData([]);
@@ -31,8 +31,8 @@ const ExpensePieChart = () => {
       }
 
       const categoryTotals = expenses.reduce((acc, transaction) => {
-        const category = transaction.category;
-        acc[category] = (acc[category] || 0) + Math.abs(transaction.amount);
+        const category = transaction.category_c?.Name || transaction.category_c || 'Uncategorized';
+        acc[category] = (acc[category] || 0) + Math.abs(transaction.amount_c || 0);
         return acc;
       }, {});
 
