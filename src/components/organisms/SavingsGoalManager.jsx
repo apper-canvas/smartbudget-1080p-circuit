@@ -47,33 +47,29 @@ const [formData, setFormData] = useState({
 const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.title_c || !formData.target_amount_c || !formData.deadline_c) {
-      toast.error("Please fill in all fields");
-      return;
+    // Allow partial saves - only validate provided fields
+    if (!formData.title_c && !formData.target_amount_c) {
+      return; // Need at least title or amount to create a goal
     }
 
-    const amount = parseFloat(formData.target_amount_c);
-    if (isNaN(amount) || amount <= 0) {
+const amount = formData.target_amount_c ? parseFloat(formData.target_amount_c) : null;
+    if (formData.target_amount_c && (isNaN(amount) || amount <= 0)) {
       toast.error("Please enter a valid target amount");
       return;
     }
 
-    try {
+try {
       const goalData = {
-        title_c: formData.title_c,
-        target_amount_c: amount,
+        title_c: formData.title_c || "Untitled Goal",
+        target_amount_c: amount || 0,
         current_amount_c: 0,
-        deadline_c: new Date(formData.deadline_c).toISOString()
+        deadline_c: formData.deadline_c ? new Date(formData.deadline_c).toISOString() : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
       };
 
       await savingsGoalService.create(goalData);
       toast.success("Savings goal created successfully");
-      setFormData({
-        title_c: "",
-        target_amount_c: "",
-        deadline_c: formatDateInput(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000))
-      });
-      setShowForm(false);
+// Keep form open for potential additional edits
+      // Don't clear form data automatically - let user decide
       await loadGoals();
     } catch (error) {
       toast.error(error.message || "Failed to create savings goal");

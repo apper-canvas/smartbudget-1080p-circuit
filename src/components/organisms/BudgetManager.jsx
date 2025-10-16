@@ -40,13 +40,18 @@ const [formData, setFormData] = useState({
     }
 
     // Only auto-save if both fields have values
-    if (!formData.category || !formData.monthlyLimit) {
-      return;
+// Auto-save with partial data - validate what we have
+    if (!formData.category && !formData.monthlyLimit) {
+      return; // Need at least one field to save
     }
 
-    const limit = parseFloat(formData.monthlyLimit);
-    if (isNaN(limit) || limit <= 0) {
-      return;
+    const limit = formData.monthlyLimit ? parseFloat(formData.monthlyLimit) : null;
+    if (formData.monthlyLimit && (isNaN(limit) || limit <= 0)) {
+      return; // Only validate limit if provided
+    }
+
+    if (!formData.category) {
+      return; // Category is required for budget creation
     }
 
     // Debounce auto-save by 500ms
@@ -56,9 +61,9 @@ const [formData, setFormData] = useState({
         const currentMonth = getCurrentMonth();
         const [year, month] = currentMonth.split("-");
         
-        await budgetService.upsertBudget(
+await budgetService.upsertBudget(
           formData.category,
-          limit,
+          limit || 0,
           currentMonth,
           parseInt(year)
         );
@@ -66,11 +71,8 @@ const [formData, setFormData] = useState({
         toast.success("Budget saved automatically");
         await loadData();
         
-        // Only clear form and close if this was a new budget
-        if (!editingBudgetId) {
-          setFormData({ category: "", monthlyLimit: "" });
-          setShowForm(false);
-        }
+// Keep form open for continuous editing after auto-save
+        // Form will be cleared/closed by user action or when switching budgets
       } catch (error) {
         toast.error(error.message || "Failed to save budget");
       } finally {
@@ -84,7 +86,7 @@ const [formData, setFormData] = useState({
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [formData.category, formData.monthlyLimit, editingBudgetId]);
+}, [formData.category, formData.monthlyLimit, editingBudgetId, currentMonth, year]);
 
 const loadData = async () => {
     setLoading(true);
