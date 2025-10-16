@@ -86,7 +86,7 @@ await budgetService.upsertBudget(
         clearTimeout(saveTimeoutRef.current);
       }
     };
-}, [formData.category, formData.monthlyLimit, editingBudgetId, currentMonth, year]);
+}, [formData.category, formData.monthlyLimit, editingBudgetId]);
 
 const loadData = async () => {
     setLoading(true);
