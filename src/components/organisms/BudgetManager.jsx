@@ -1,15 +1,16 @@
-import React, { useState, useEffect } from "react";
-import Card from "@/components/atoms/Card";
-import Button from "@/components/atoms/Button";
-import FormField from "@/components/molecules/FormField";
-import Input from "@/components/atoms/Input";
-import Select from "@/components/atoms/Select";
-import ApperIcon from "@/components/ApperIcon";
+import React, { useEffect, useRef, useState } from "react";
 import { budgetService } from "@/services/api/budgetService";
 import { transactionService } from "@/services/api/transactionService";
 import { categoryService } from "@/services/api/categoryService";
-import { getCurrentMonth, formatCurrency } from "@/utils/formatters";
 import { toast } from "react-toastify";
+import { formatCurrency, getCurrentMonth } from "@/utils/formatters";
+import ApperIcon from "@/components/ApperIcon";
+import Button from "@/components/atoms/Button";
+import Select from "@/components/atoms/Select";
+import Card from "@/components/atoms/Card";
+import Input from "@/components/atoms/Input";
+import FormField from "@/components/molecules/FormField";
+import Budget from "@/components/pages/Budget";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 
@@ -20,14 +21,70 @@ const BudgetManager = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({
+const [formData, setFormData] = useState({
     category: "",
     monthlyLimit: ""
   });
-
+  const [editingBudgetId, setEditingBudgetId] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const saveTimeoutRef = useRef(null);
   useEffect(() => {
     loadData();
   }, []);
+
+  // Auto-save effect
+  useEffect(() => {
+    // Clear any pending save timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    // Only auto-save if both fields have values
+    if (!formData.category || !formData.monthlyLimit) {
+      return;
+    }
+
+    const limit = parseFloat(formData.monthlyLimit);
+    if (isNaN(limit) || limit <= 0) {
+      return;
+    }
+
+    // Debounce auto-save by 500ms
+    saveTimeoutRef.current = setTimeout(async () => {
+      setIsSaving(true);
+      try {
+        const currentMonth = getCurrentMonth();
+        const [year, month] = currentMonth.split("-");
+        
+        await budgetService.upsertBudget(
+          formData.category,
+          limit,
+          currentMonth,
+          parseInt(year)
+        );
+        
+        toast.success("Budget saved automatically");
+        await loadData();
+        
+        // Only clear form and close if this was a new budget
+        if (!editingBudgetId) {
+          setFormData({ category: "", monthlyLimit: "" });
+          setShowForm(false);
+        }
+      } catch (error) {
+        toast.error(error.message || "Failed to save budget");
+      } finally {
+        setIsSaving(false);
+      }
+    }, 500);
+
+    // Cleanup function
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [formData.category, formData.monthlyLimit, editingBudgetId]);
 
 const loadData = async () => {
     setLoading(true);
@@ -51,39 +108,6 @@ const loadData = async () => {
     }
   };
 
-const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!formData.category || !formData.monthlyLimit) {
-      toast.error("Please fill in all fields");
-      return;
-    }
-
-    const limit = parseFloat(formData.monthlyLimit);
-    if (isNaN(limit) || limit <= 0) {
-      toast.error("Please enter a valid budget limit");
-      return;
-    }
-
-    try {
-      const currentMonth = getCurrentMonth();
-      const [year, month] = currentMonth.split("-");
-      
-      await budgetService.upsertBudget(
-        formData.category,
-        limit,
-        currentMonth,
-        parseInt(year)
-      );
-      
-      toast.success("Budget saved successfully");
-      setFormData({ category: "", monthlyLimit: "" });
-      setShowForm(false);
-      await loadData();
-    } catch (error) {
-      toast.error(error.message || "Failed to save budget");
-    }
-  };
 
 const getSpentAmount = (categoryName) => {
     return transactions
@@ -128,7 +152,7 @@ const getSpentAmount = (categoryName) => {
 
         {showForm && (
           <div className="mb-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
-            <form onSubmit={handleSubmit} className="space-y-4">
+<form className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField label="Category">
                   <Select
@@ -164,8 +188,15 @@ const getSpentAmount = (categoryName) => {
                 </FormField>
               </div>
               
-              <div className="flex justify-end">
-                <Button type="submit">Save Budget</Button>
+<div className="flex justify-end items-center gap-2">
+                {isSaving ? (
+                  <span className="text-sm text-gray-500 flex items-center gap-2">
+                    <ApperIcon name="Loader2" className="w-4 h-4 animate-spin" />
+                    Saving...
+                  </span>
+                ) : (
+                  <span className="text-sm text-green-600">Auto-save enabled</span>
+                )}
               </div>
             </form>
           </div>
